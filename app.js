@@ -962,6 +962,122 @@ document.querySelectorAll('.modal').forEach(modal => {
 });
 
 // ========================================
+// エクスポート・インポート機能
+// ========================================
+
+const exportDataBtn = document.getElementById('export-data-btn');
+const importDataBtn = document.getElementById('import-data-btn');
+const importFileInput = document.getElementById('import-file-input');
+
+// データをエクスポート
+function exportData() {
+    const exportData = {
+        version: '1.0.0',
+        exportedAt: new Date().toISOString(),
+        recipes: recipes,
+        meals: meals,
+        shoppingList: shoppingList,
+        staples: staples
+    };
+
+    const json = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    // ファイル名を生成（日付付き）
+    const date = new Date();
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const filename = `kyou-nani-backup-${dateStr}.json`;
+
+    // ダウンロードリンクを作成して実行
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    alert('データをエクスポートしました！');
+}
+
+// データをインポート
+function importData(file) {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+        try {
+            const data = JSON.parse(e.target.result);
+
+            // データの検証
+            if (!data.recipes || !Array.isArray(data.recipes)) {
+                throw new Error('レシピデータが見つかりません');
+            }
+
+            // 確認ダイアログ
+            const recipeCount = data.recipes.length;
+            const mealDays = Object.keys(data.meals || {}).length;
+            const message = `以下のデータをインポートします。既存のデータは上書きされます。\n\n` +
+                `・レシピ: ${recipeCount}件\n` +
+                `・献立登録日数: ${mealDays}日\n` +
+                `・買い物リスト: ${(data.shoppingList?.items || []).length}件\n` +
+                `・常備品: ${(data.staples?.items || []).length}件\n\n` +
+                `インポートを続行しますか？`;
+
+            if (!confirm(message)) {
+                return;
+            }
+
+            // データを復元
+            recipes = data.recipes;
+            meals = data.meals || {};
+            shoppingList = data.shoppingList || { items: [] };
+            staples = data.staples || { items: [] };
+
+            // 保存
+            saveData(STORAGE_KEYS.RECIPES, recipes);
+            saveData(STORAGE_KEYS.MEALS, meals);
+            saveData(STORAGE_KEYS.SHOPPING, shoppingList);
+            saveData(STORAGE_KEYS.STAPLES, staples);
+
+            alert('データをインポートしました！');
+
+            // 画面を再描画
+            renderCalendar();
+            renderRecipesList();
+            renderShoppingList();
+            renderStaplesList();
+
+        } catch (error) {
+            console.error('インポートエラー:', error);
+            alert('ファイルの読み込みに失敗しました。正しいバックアップファイルか確認してください。');
+        }
+    };
+
+    reader.onerror = () => {
+        alert('ファイルの読み込みに失敗しました。');
+    };
+
+    reader.readAsText(file);
+}
+
+// イベントリスナー
+exportDataBtn.addEventListener('click', exportData);
+
+importDataBtn.addEventListener('click', () => {
+    importFileInput.click();
+});
+
+importFileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        importData(file);
+        // 同じファイルを再度選択できるようにリセット
+        importFileInput.value = '';
+    }
+});
+
+// ========================================
 // 初期化
 // ========================================
 
