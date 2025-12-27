@@ -602,6 +602,21 @@ newItemInput.addEventListener('keypress', (e) => {
     }
 });
 
+// チェック済みアイテムを一括削除
+const deleteCheckedBtn = document.getElementById('delete-checked-btn');
+
+function deleteCheckedItems() {
+    const checkedItems = shoppingList.items.filter(i => i.checked);
+    if (checkedItems.length === 0) {
+        return;
+    }
+    shoppingList.items = shoppingList.items.filter(i => !i.checked);
+    saveData(STORAGE_KEYS.SHOPPING, shoppingList);
+    renderShoppingList();
+}
+
+deleteCheckedBtn.addEventListener('click', deleteCheckedItems);
+
 // 献立から生成
 generateListBtn.addEventListener('click', () => {
     // デフォルト値を設定（今日から1週間）

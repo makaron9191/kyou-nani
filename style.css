@@ -483,7 +483,34 @@ body {
 .add-item-form {
   display: flex;
   gap: 8px;
+  margin-bottom: 16px;
+}
+
+.btn-delete-checked {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 16px;
   margin-bottom: 24px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: transparent;
+  color: var(--text-light);
+  font-size: 0.875rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.btn-delete-checked:hover {
+  color: #E07B7B;
+  background: #FFF0F0;
+}
+
+.btn-delete-checked:active {
+  transform: scale(0.98);
 }
 
 /* 常備品セクション */
